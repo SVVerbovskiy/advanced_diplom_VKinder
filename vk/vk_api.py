@@ -49,7 +49,7 @@ class VkClient:
             return None
 
 
-def get_tree_popular_profile_photos(profile_photos: list):
+def get_three_popular_profile_photos(profile_photos: list):
     if len(profile_photos) >= 3:
         likes = []
         popular_profile_photos = []
@@ -89,7 +89,7 @@ def get_potential_friend_photos(client: VkClient, owner_id: str):
     if photos is None or len(photos) < 3:
         return None
 
-    popular_photos = get_tree_popular_profile_photos(photos)
+    popular_photos = get_three_popular_profile_photos(photos)
 
     return [_["sizes"][-1]["url"] for _ in popular_photos]
 
