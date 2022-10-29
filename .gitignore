@@ -2,3 +2,5 @@
 venv/
 .vscode/
 __pycache__/
+bot/__pycache__/
+database/__pycache__/
