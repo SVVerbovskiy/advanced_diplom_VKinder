@@ -3,11 +3,24 @@ from sqlalchemy.orm import sessionmaker
 from models import create_tables
 from db_config import DSN
 
-engine = sq.create_engine(DSN)
 
-Session = sessionmaker(bind=engine)
-session = Session()
+def create_connection():
+    engine = sq.create_engine(DSN)
+    return engine 
 
-create_tables(engine)
+class Vkinder:
 
-session.close()
+    def __init__(self):
+        self.engine = create_connection()
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
+        create_tables(self.engine)
+
+    def session_close(self):
+        self.session.close()
+
+
+
+
+vkinder = Vkinder()
+print(vkinder)

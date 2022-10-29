@@ -5,21 +5,6 @@ from sqlalchemy.orm import declarative_base, relationship
 Base = declarative_base()
 
 
-class User(Base):
-
-    __tablename__ = 'user' 
-
-    id = Column(Integer, primary_key=True)
-    vk_id = Column(Integer, unique=True, nullable=False)
-    first_name = Column(String(length=40), nullable=False)
-    last_name = Column(String(length=40), nullable=False)
-    age = Column(Integer, nullable=False)
-    sex = Column(String(length=10), nullable=False)
-    hometown = Column(String(length=40), nullable=False)
-
-    favorite = relationship("Favorite", back_populates="user")
-
-
 class Person(Base):
 
     __tablename__ = 'person'
@@ -29,31 +14,26 @@ class Person(Base):
     first_name = Column(String(length=40), nullable=False)
     last_name = Column(String(length=40), nullable=False)
 
-    photo = relationship("Photo", back_populates="person")
-    favorite = relationship("Favorite", back_populates="person")
+    favourite = relationship("Favorite", back_populates="person")
+    blacklist = relationship("BlackList", back_populates="person")
 
+class Favourite(Base):
 
-class Photo(Base):
-
-    __tablename__ = 'photo'
+    __tablename__ = 'favourite'
 
     id = Column(Integer, primary_key=True)
-    person_id = Column(Integer, ForeignKey("person.id"), nullable=False)
-    url = Column(String(length=200), unique=True, nullable=False)
+    person_id = Column(Integer, ForeignKey("person.id"), unique=True, nullable=False)
 
-    person = relationship(Person, back_populates="photo")
+    person = relationship(Person, back_populates="favourite")
 
+class BlackList(Base):
 
-class Favorite(Base):
+    __tablename__ = 'blacklist'
 
-    __tablename__ = 'favorite'
+    id = Column(Integer, primary_key=True)
+    person_id = Column(Integer, ForeignKey("person.id"), unique=True, nullable=False)
 
-    user_id = Column(Integer, ForeignKey("user.id"), primary_key=True)
-    person_id = Column(Integer, ForeignKey("person.id"), primary_key=True)
-
-    user = relationship(User, back_populates="favorite")
-    person = relationship(Person, back_populates="favorite")
-
+    person = relationship(Person, back_populates="blacklist")
 
 def create_tables(engine):
     Base.metadata.create_all(engine)
