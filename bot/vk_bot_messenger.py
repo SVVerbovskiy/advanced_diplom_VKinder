@@ -2,7 +2,7 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from random import randrange
-from bot.config import api_group_key
+from config import api_group_key
 
 vk_auth = vk_api.VkApi(token=api_group_key)
 vk = vk_auth.get_api()
