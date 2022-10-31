@@ -16,6 +16,19 @@ class Person(Base):
 
     favourite = relationship("Favorite", back_populates="person")
     blacklist = relationship("BlackList", back_populates="person")
+    photo = relationship("Photo", back_populates="person")
+
+
+class Photo(Base):
+
+    __tablename__ = 'photo'
+
+    id = Column(Integer, primary_key=True)
+    person_id = Column(Integer, ForeignKey("person.id"), nullable=False)
+    url = Column(String(length=200), unique=True, nullable=False)
+
+    person = relationship(Person, back_populates="photo")
+
 
 class Favourite(Base):
 
