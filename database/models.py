@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import declarative_base, relationship 
+from sqlalchemy.orm import declarative_base, relationship
 
 
 Base = declarative_base()
@@ -7,46 +7,44 @@ Base = declarative_base()
 
 class Person(Base):
 
-    __tablename__ = 'person'
+    __tablename__ = "person"
 
     id = Column(Integer, primary_key=True)
     vk_id = Column(Integer, unique=True, nullable=False)
     first_name = Column(String(length=40), nullable=False)
     last_name = Column(String(length=40), nullable=False)
 
-    favourite = relationship("Favorite", back_populates="person")
-    blacklist = relationship("BlackList", back_populates="person")
-    photo = relationship("Photo", back_populates="person")
-
 
 class Photo(Base):
 
-    __tablename__ = 'photo'
+    __tablename__ = "photo"
 
     id = Column(Integer, primary_key=True)
     person_id = Column(Integer, ForeignKey("person.id"), nullable=False)
-    url = Column(String(length=200), unique=True, nullable=False)
+    url = Column(String(1000), unique=True, nullable=False)
 
-    person = relationship(Person, back_populates="photo")
+    person = relationship(Person, backref="photo")
 
 
 class Favourite(Base):
 
-    __tablename__ = 'favourite'
+    __tablename__ = "favourite"
 
     id = Column(Integer, primary_key=True)
     person_id = Column(Integer, ForeignKey("person.id"), unique=True, nullable=False)
 
-    person = relationship(Person, back_populates="favourite")
+    person = relationship(Person, backref="favourite")
+
 
 class BlackList(Base):
 
-    __tablename__ = 'blacklist'
+    __tablename__ = "blacklist"
 
     id = Column(Integer, primary_key=True)
     person_id = Column(Integer, ForeignKey("person.id"), unique=True, nullable=False)
 
-    person = relationship(Person, back_populates="blacklist")
+    person = relationship(Person, backref="blacklist")
+
 
 def create_tables(engine):
     Base.metadata.create_all(engine)
