@@ -1,16 +1,21 @@
+import requests
 import vk_api
+from io import BytesIO
+from vk_api import VkUpload
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from random import randrange
-from config import api_group_key
+from config import api_group_key, vk_token
+from vk.vk_search import get_potential_friends, get_potential_friend_photos, VkClient
 
 vk_auth = vk_api.VkApi(token=api_group_key)
 vk = vk_auth.get_api()
 longpoll = VkLongPoll(vk_auth)
+upload = VkUpload(vk_auth)
+vk_client = VkClient(vk_token)
 
 favour = []
-users_requests = dict()
-client_match = dict()
+users_requests = {}
 
 
 def send_msg(user_id, message, keyboard=None):
@@ -27,6 +32,7 @@ def send_msg(user_id, message, keyboard=None):
 
 
 def get_start(user_id):
+    # Тут в начало добавить ссылку на избранное из бд и потом в if проверять длину БД. Если >0
     if len(favour) > 0:
         keyboard = VkKeyboard(one_time=True)
         keyboard.add_button('Начнём подбор!', VkKeyboardColor.PRIMARY)
@@ -44,19 +50,19 @@ def get_finish(user_id):
     send_msg(user_id, f'Всего доброго! До скорых встреч!')
 
 
-def get_city(user_id):
+def get_hometown(user_id):
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Завершить', color=VkKeyboardColor.NEGATIVE)
     send_msg(user_id, 'В каком городе будем искать?', keyboard)
 
 
-def confirm_city(user_id, city):
+def confirm_hometown(user_id, hometown):
     keyboard = VkKeyboard(one_time=True)
-    keyboard.add_button('Все верно', color=VkKeyboardColor.POSITIVE)
-    keyboard.add_button('Изменить', color=VkKeyboardColor.PRIMARY)
+    keyboard.add_button('Да, город верный', color=VkKeyboardColor.POSITIVE)
+    keyboard.add_button('Изменить город', color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()
     keyboard.add_button('Завершить', color=VkKeyboardColor.NEGATIVE)
-    send_msg(user_id, f'Ищем в городе {city.title()}?', keyboard)
+    send_msg(user_id, f'Ищем в городе {hometown.capitalize()}?', keyboard)
 
 
 def get_sex(user_id):
@@ -68,21 +74,17 @@ def get_sex(user_id):
     send_msg(user_id, f'Кого будем искать?', keyboard)
 
 
-def get_age_from(user_id):
-    send_msg(user_id, f'Со скольки лет?')
+def get_age(user_id):
+    send_msg(user_id, f'Укажите возраст:')
 
 
-def get_age_to(user_id):
-    send_msg(user_id, 'До скольки лет?')
-
-
-def confirm_data(user_id, city, sex, age_from, age_to):
+def confirm_data(user_id, sex, hometown, age):
     keyboard = VkKeyboard(one_time=True)
-    keyboard.add_button('Всё верно', VkKeyboardColor.SECONDARY)
+    keyboard.add_button('Все верно', VkKeyboardColor.SECONDARY)
     keyboard.add_button('Изменить параметры', VkKeyboardColor.PRIMARY)
     keyboard.add_line()
     keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
-    send_msg(user_id, f'Ищем {sex} в возрасте от {age_from} до {age_to} из города {city.title()}?', keyboard)
+    send_msg(user_id, f'Ищем {sex} в возрасте {age} из города {hometown.capitalize()}?', keyboard)
 
 
 def change_data(user_id):
@@ -95,22 +97,38 @@ def change_data(user_id):
     send_msg(user_id, 'Что хотите изменить?', keyboard)
 
 
+def send_match(user_id):
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button('Давай смотреть!', VkKeyboardColor.POSITIVE)
+    keyboard.add_line()
+    keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
+    send_msg(user_id, f'По вашему запросу найдено {len(friends_list())} пользователей!', keyboard)
+
+
 def send_photo(user_id, url):
-    vk.messages.send(user_id=user_id, attachment=url, random_id=randrange(10**7))
+    vk.messages.send(user_id=user_id, attachment=url, random_id=randrange(10 ** 7))
 
 
-def send_person():
-    pass
+def send_next(user_id):
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
+    keyboard.add_line()
+    keyboard.add_button('ИЗБРАННОЕ', VkKeyboardColor.PRIMARY)
+    keyboard.add_button('В избранное', VkKeyboardColor.POSITIVE)
+    keyboard.add_line()
+    keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
+    send_msg(user_id, f'Что думаете о данном пользователе?', keyboard)
 
 
-def add_to_favorite():
-    favour.append()
+def add_to_favorite(user_id):
+    # тут прописать добавление в избранное в базу данных
+
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('ИЗБРАННОЕ', VkKeyboardColor.PRIMARY)
     keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
     keyboard.add_line()
-    keyboard.add_button('Завершить общение :(', VkKeyboardColor.NEGATIVE)
-    send_msg(id, f'"ИМЯ" в избранном!', keyboard)
+    keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
+    send_msg(user_id, f'"ИМЯ" в избранном!', keyboard)
 
 
 def list_is_over(user_id):
@@ -124,119 +142,128 @@ def list_is_over(user_id):
 
 
 def show_favorite(user_id):
-    pass
+    # В данной функции дописать список избранного из БД и вывести его длину
+    send_msg(user_id, f'У Вас в избранном {len(favour)} человек:')
+
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
+    keyboard.add_line()
+    keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
+    send_msg(user_id, 'Смотрим дальше?', keyboard)
 
 
-flag = ''
-for event in longpoll.listen():
-    if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-        msg = event.message.lower()
-        client_id = event.user_id
-        if msg and flag == '':
-            get_start(client_id)
-            flag = 'start'
-        if msg == 'завершить':
-            param = f'"city": "{users_requests[client_id]["city"]}", ' \
-                    f'"sex": "{users_requests[client_id]["sex"]}", ' \
-                    f'"age_from": "{users_requests[client_id]["age_from"]}", ' \
-                    f'"age_to": "{users_requests[client_id]["age_to"]}"'
-            write_count(client_id, count, param)
-            get_finish(client_id)
-            flag = ''
-        elif msg == 'начнём подбор!':
-            users_requests[client_id] = {"city": "", "sex": "", "age_from": "", "age_to": "", "token": ""}
-            get_city(client_id)
-            flag = 'to_city'
-        elif flag == 'to_city':
-            confirm_city(client_id, msg)
-            flag = msg
-        elif msg == 'все верно' and flag != 'confirm data':
-            city = flag
-            users_requests[client_id]["city"] = city
-            flag = 'to_sex'
-            get_sex(client_id)
-        elif msg == 'изменить город':
-            get_city(client_id)
-            if users_requests[client_id]["sex"] == "":
-                flag = 'to_city'
-            else:
-                flag = 'change city'
-        elif msg == 'парня' and flag != 'change sex':
-            sex = msg
-            users_requests[client_id]["sex"] = 2
-            get_age_from(client_id)
-            flag = 'to_age_from'
-        elif msg == 'девушку' and flag != 'change sex':
-            sex = msg
-            users_requests[client_id]["sex"] = 1
-            get_age_from(client_id)
-            flag = 'to_age_from'
-        elif flag == 'to_age_from':
-            try:
-                age_f = int(msg.strip())
-                users_requests[client_id]["age_from"] = age_f
-                get_age_to(client_id)
-                flag = 'to_age_to'
-            except ValueError:
-                send_msg(client_id, 'Что-то пошло не так')
-                get_age_from(client_id)
-        elif flag == 'to_age_to':
-            try:
-                age_t = int(msg.strip())
-                users_requests[client_id]["age_to"] = age_t
-                flag = 'confirm'
-                confirm_data(user_id=client_id, city=city, sex=sex, age_from=age_f, age_to=age_t)
-            except ValueError:
-                send_msg(client_id, 'Что-то пошло не так')
-                get_age_from(client_id)
-        elif msg == 'изменить параметры':
-            change_data(client_id)
-        elif msg == 'город':
-            get_city(client_id)
-            flag = 'change city'
-        elif flag == 'change city':
-            flag = 'confirm data'
-            new_city = msg
-            confirm_city(client_id, msg)
-        elif msg == 'да, город верный' and flag == 'confirm data':
-            city = new_city
-            users_requests[client_id]["city"] = city
-            confirm_data(id=client_id, city=city, sex=sex, age_from=age_f, age_to=age_t)
-        elif msg == 'возраст':
-            get_age_from(client_id)
-            flag = 'to_age_from'
-        elif msg == 'пол':
-            flag = 'change sex'
-            get_sex(client_id)
-        elif msg == 'парня' and flag == 'change sex':
-            sex = msg
-            users_requests[client_id]["sex"] = 2
-            confirm_data(id=client_id, city=city, sex=sex, age_from=age_f, age_to=age_t)
-        elif msg == 'девушку' and flag == 'change sex':
-            sex = msg
-            users_requests[client_id]["sex"] = 1
-            confirm_data(id=client_id, city=city, sex=sex, age_from=age_f, age_to=age_t)
-        elif msg == 'давай смотреть!':
-            count = 0
-            param = f'{{"city": "{users_requests[client_id]["city"]}", "sex": "{users_requests[client_id]["sex"]}", '
-            param += f'"age_from": "{users_requests[client_id]["age_from"]}", "age_to": '
-            param += f'"{users_requests[client_id]["age_to"]}", "token": "{users_requests[client_id]["token"]}"}}'
-            write_count(client_id, count, param)
-            current_match = client_match[client_id][count]
-            if users_requests[client_id]["token"]:
-                token = users_requests[client_id]["token"]
-            else:
-                token = api_group_key
-            user_info = send_person(client_id, current_match, token)
-        elif msg == 'дальше':
-            count += 1
-            if count < match_count:
-                current_match = client_match[client_id][count]
-                user_info = send_person(client_id, current_match, token)
-            else:
-                list_is_over(client_id)
-        elif msg == 'в избранное':
-            add_to_favorite(id=client_id, user_info=user_info)
-        elif msg == 'избранное':
-            show_favorite(client_id)
+def friends_list():
+    friends = get_potential_friends(client=vk_client,
+                                    sex=users_requests['sex'],
+                                    hometown=users_requests['hometown'],
+                                    age=users_requests['age'])
+    return friends
 
+
+def main():
+    flag = ''
+    for event in longpoll.listen():
+        if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+            msg = event.message.lower()
+            client_id = event.user_id
+            if msg and flag == '':
+                get_start(client_id)
+                flag = 'start'
+            if msg == 'завершить':
+                get_finish(client_id)
+                flag = ''
+            elif msg == 'начнём подбор!':
+                get_hometown(client_id)
+                flag = 'to_hometown'
+            elif flag == 'to_hometown':
+                confirm_hometown(client_id, msg)
+                flag = msg
+            elif msg == 'да, город верный' and flag != 'confirm data':
+                hometown = flag
+                users_requests["hometown"] = hometown.capitalize()
+                flag = 'to_sex'
+                get_sex(client_id)
+            elif msg == 'изменить город':
+                get_hometown(client_id)
+                if users_requests["sex"] == "":
+                    flag = 'to_hometown'
+                else:
+                    flag = 'change hometown'
+            elif msg == 'парня' and flag != 'change sex':
+                sex = msg
+                users_requests["sex"] = '2'
+                get_age(client_id)
+                flag = 'to_age'
+            elif msg == 'девушку' and flag != 'change sex':
+                sex = msg
+                users_requests["sex"] = '1'
+                get_age(client_id)
+                flag = 'to_age'
+            elif flag == 'to_age':
+                try:
+                    age = msg.strip()
+                    users_requests["age"] = age
+                    flag = 'confirm'
+                    confirm_data(user_id=client_id, sex=sex, hometown=users_requests['hometown'],
+                                 age=users_requests['age'])
+                except ValueError:
+                    send_msg(client_id, 'Что-то пошло не так')
+                    get_age(client_id)
+            elif msg == 'изменить параметры':
+                change_data(client_id)
+            elif msg == 'город':
+                get_hometown(client_id)
+                flag = 'change hometown'
+            elif flag == 'change hometown':
+                flag = 'confirm data'
+                new_hometown = msg
+                confirm_hometown(client_id, msg)
+            elif msg == 'да, город верный' and flag == 'confirm data':
+                hometown = new_hometown
+                users_requests["hometown"] = hometown.capitalize()
+                confirm_data(user_id=client_id, sex=sex, hometown=users_requests['hometown'],
+                             age=users_requests['age'])
+            elif msg == 'возраст':
+                get_age(client_id)
+                flag = 'to_age'
+            elif msg == 'пол':
+                flag = 'change sex'
+                get_sex(client_id)
+            elif msg == 'парня' and flag == 'change sex':
+                sex = msg
+                users_requests["sex"] = '1'
+                confirm_data(user_id=client_id, sex=sex, hometown=users_requests['hometown'],
+                             age=users_requests['age'])
+            elif msg == 'девушку' and flag == 'change sex':
+                sex = msg
+                users_requests["sex"] = '2'
+                confirm_data(user_id=client_id, sex=sex, hometown=users_requests['hometown'],
+                             age=users_requests['age'])
+            elif msg == 'все верно':
+                send_match(client_id)
+                friends = friends_list()
+            elif msg == 'давай смотреть!' or msg == 'дальше':
+                pops = friends.pop()
+                full_name = f"{pops['first_name']} {pops['last_name']}"
+                page_link = f"https://vk.com/id{pops['id']}"
+                photo_list = get_potential_friend_photos(client=vk_client, owner_id=f"{pops['id']}")
+                send_msg(client_id, full_name)
+                send_msg(client_id, page_link)
+                if photo_list is None:
+                    send_msg(client_id, 'У пользователя недостаточно фотографий')
+                else:
+                    for photo in photo_list:
+                        img = requests.get(photo).content
+                        f = BytesIO(img)
+                        upload_photo = upload.photo_messages(f)[0]
+                        url = ('photo{}_{}'.format(upload_photo['owner_id'], upload_photo['id']))
+                        send_photo(client_id, url=url)
+                send_next(client_id)
+            elif msg == 'в избранное':
+                add_to_favorite(user_id=client_id)
+            elif msg == 'избранное':
+                show_favorite(client_id)
+
+
+if __name__ == '__main__':
+    main()
