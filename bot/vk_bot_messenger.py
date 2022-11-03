@@ -19,6 +19,16 @@ users_requests = {}
 
 
 def send_msg(user_id, message, keyboard=None):
+    """
+    Функция отправляет сообщение собеседнику
+
+    :param user_id: id собеседника
+    :type user_id: int
+    :param message: текст сообщения
+    :type : str
+    :param keyboard: клавиатура с необходимыми кнопками
+    :type : class instance 'vk_api.keyboard.VkKeyboard'
+    """
     text = {
         'user_id': user_id,
         'message': message,
@@ -32,6 +42,12 @@ def send_msg(user_id, message, keyboard=None):
 
 
 def get_start(user_id):
+    """
+    Функция отправляет кнопку предлагающую начать подбор
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     # Тут в начало добавить ссылку на избранное из бд и потом в if проверять длину БД. Если >0
     if len(favour) > 0:
         keyboard = VkKeyboard(one_time=True)
@@ -47,16 +63,36 @@ def get_start(user_id):
 
 
 def get_finish(user_id):
+    """
+    Функция отправляет сообщение при завершении сеанса общения
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     send_msg(user_id, f'Всего доброго! До скорых встреч!')
 
 
 def get_hometown(user_id):
+    """
+    Функция отправляет сообщение с просьбой ввести город в котором будем искать
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Завершить', color=VkKeyboardColor.NEGATIVE)
     send_msg(user_id, 'В каком городе будем искать?', keyboard)
 
 
 def confirm_hometown(user_id, hometown):
+    """
+    Функция отправляет кнопки для изменения и подтверждения города
+
+    :param user_id: id собеседника
+    :type user_id: int
+    :param hometown: название города которое ввёл собеседник
+    :type hometown: str
+    """
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Да, город верный', color=VkKeyboardColor.POSITIVE)
     keyboard.add_button('Изменить город', color=VkKeyboardColor.PRIMARY)
@@ -66,6 +102,12 @@ def confirm_hometown(user_id, hometown):
 
 
 def get_sex(user_id):
+    """
+    Функция отправляет кнопки для выбора пола партнёра
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Парня', color=VkKeyboardColor.POSITIVE)
     keyboard.add_button('Девушку', color=VkKeyboardColor.PRIMARY)
@@ -75,10 +117,28 @@ def get_sex(user_id):
 
 
 def get_age(user_id):
+    """
+    Функция отправляет сообщение с запросом возраста для поиска партнера
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     send_msg(user_id, f'Укажите возраст:')
 
 
 def confirm_data(user_id, sex, hometown, age):
+    """
+    Функция отправляет кнопки для изменения и подтверждения параметров поиска
+
+    :param user_id: id собеседника
+    :type user_id: int
+    :param sex: пол партнёра
+    :type sex: str
+    :param hometown: название города
+    :type hometown: str
+    :param age: нижняя планка возраста
+    :type age: str
+    """
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Все верно', VkKeyboardColor.SECONDARY)
     keyboard.add_button('Изменить параметры', VkKeyboardColor.PRIMARY)
@@ -88,6 +148,12 @@ def confirm_data(user_id, sex, hometown, age):
 
 
 def change_data(user_id):
+    """
+    Функция отправляет кнопки для выбора параметра который необходимо изменить
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Город', VkKeyboardColor.PRIMARY)
     keyboard.add_button('Пол', VkKeyboardColor.POSITIVE)
@@ -98,6 +164,12 @@ def change_data(user_id):
 
 
 def send_match(user_id):
+    """
+    Функция отправляет сообщение с количеством совпадений и кнопку для начала просмотра
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Давай смотреть!', VkKeyboardColor.POSITIVE)
     keyboard.add_line()
@@ -106,11 +178,27 @@ def send_match(user_id):
 
 
 def send_photo(user_id, url):
+    """
+    Функция отправляет фотографию
+
+    :param user_id: id собеседника
+    :type user_id: int
+    :param url: вложение
+    :type url: str
+    """
     vk.messages.send(user_id=user_id, attachment=url, random_id=randrange(10 ** 7))
 
 
 def send_next(user_id):
+    """
+    Функция отправляет навигационные кнопки для просмотра информации о следующем пользователе,
+    добавлении его в список избранного или в черный список
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button('В чёрный список', VkKeyboardColor.NEGATIVE)
     keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
     keyboard.add_line()
     keyboard.add_button('ИЗБРАННОЕ', VkKeyboardColor.PRIMARY)
@@ -121,6 +209,12 @@ def send_next(user_id):
 
 
 def add_to_favorite(user_id):
+    """
+    Функция добавляет партнера в избранное и записывает в БД
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     # тут прописать добавление в избранное в базу данных
 
     keyboard = VkKeyboard(one_time=True)
@@ -132,6 +226,12 @@ def add_to_favorite(user_id):
 
 
 def list_is_over(user_id):
+    """
+    Функция отправляет сообщение о том что список совпадений закончился и навигационные кнопки
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     send_msg(user_id, 'По данному запросу ничего больше нет(')
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('ИЗБРАННОЕ', VkKeyboardColor.PRIMARY)
@@ -142,9 +242,14 @@ def list_is_over(user_id):
 
 
 def show_favorite(user_id):
+    """
+    Функция отправляет сообщения с данными о списке избранных получив данные из БД
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
     # В данной функции дописать список избранного из БД и вывести его длину
     send_msg(user_id, f'У Вас в избранном {len(favour)} человек:')
-
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
     keyboard.add_line()
@@ -152,7 +257,26 @@ def show_favorite(user_id):
     send_msg(user_id, 'Смотрим дальше?', keyboard)
 
 
+def add_to_blacklist(user_id):
+    """
+    Функция добавляет пользователя в черный список и делает запись в БД
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
+    #     тут дописать механизм добавления в черный список
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button('ИЗБРАННОЕ', VkKeyboardColor.PRIMARY)
+    keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
+    keyboard.add_line()
+    keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
+    send_msg(user_id, f'Пользователь добавлен в чёрный список и больше не будет появляться в выдаче!', keyboard)
+
+
 def friends_list():
+    """
+    Функция формирует список возможных друзей используя данные полученные после общения с пользователем
+    """
     friends = get_potential_friends(client=vk_client,
                                     sex=users_requests['sex'],
                                     hometown=users_requests['hometown'],
@@ -263,6 +387,8 @@ def main():
                 add_to_favorite(user_id=client_id)
             elif msg == 'избранное':
                 show_favorite(client_id)
+            elif msg == 'в чёрный список':
+                add_to_blacklist(client_id)
 
 
 if __name__ == '__main__':
