@@ -1,6 +1,6 @@
 import sqlalchemy as sq
 from sqlalchemy.orm import sessionmaker
-from models import create_tables, User, Photo, Favourite, BlackList
+from models import create_tables, drop_tables, User, Photo, Favourite, BlackList
 from db_config import DSN
 
 
@@ -14,18 +14,11 @@ class Vkinder:
         self.engine = create_connection()
         session = sessionmaker(bind=self.engine)
         self.session = session()
+        drop_tables(self.engine)
         create_tables(self.engine)
 
     def session_close(self):
         self.session.close()
-
-    def clear_tables(self):
-        '''Очистка данных из таблиц.'''
-        self.session.query(BlackList).delete()
-        self.session.query(Favourite).delete()
-        self.session.query(Photo).delete()
-        self.session.query(User).delete() 
-        self.session.commit()
 
     def add_user_data(self, data: list):
         '''Добавление информации о пользователе в базу данных.'''
@@ -55,7 +48,7 @@ class Vkinder:
         self.session.commit()
 
     def get_photo_urls(self, user_id: int):
-        '''Получение фотографии из базы данных.'''
+        '''Получение фотографий из базы данных.'''
         return self.session.query(Photo).filter(Photo.user_id == user_id).all()
 
     def add_to_favourite(self, user_id: int):
@@ -109,13 +102,10 @@ if __name__ == "__main__":
     '''Пример работы.'''
     
     # Чтобы всё показать на примерах, создал файл fixtures с тестовыми данными, подгружаю их оттуда
-    from fixtures import users, urls
+    from fixtures import users, urls 
 
-    # Создаю класс для работы с БД
+    # Создаём класс для работы с БД
     vkinder = Vkinder()
-
-    # Удаляем данные из таблиц
-    vkinder.clear_tables()
 
     # Записываем данные о пользователях, полученных через vk_search, в базу данных в таблицу User
     # На вход подается список, см. fixtures.users
