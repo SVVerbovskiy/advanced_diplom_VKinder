@@ -86,3 +86,54 @@ class Vkinder:
             return False
         else:
             return True
+
+
+if __name__ == "__main__":
+    # Что бы все показать на примерах создал файл fixtures с тестовыми данными, подгружаю их оттуда
+    from database.fixtures import users
+    from database.fixtures import urls
+
+    # Создаю класс для работы с БД
+    vkinder = Vkinder()
+
+    # Записываем данные о пользователях полученных через vk_search в базу данных в таблицу User.
+    # На вход подается список, см. fixtures.users
+    vkinder.add_user_data(data=users)
+
+    # Получаем данные о пользователе по его порядковому номеру из базы User, порядковые номера начинаются с 1, далее 2, 3 и т.д.
+    user1 = vkinder.get_user(id=1)
+    # Вот так обращаемся к результату запроса
+    print("vkinder.get_user:", user1.id, user1.user_id, user1.first_name, user1.last_name)
+
+    # Записываем url фото для пользователя в базу данных в таблицу Photo. Url получаем через vk_search.
+    # На вход подается список, см. fixtures.urls
+    vkinder.add_photo_urls(user_id=537894429, urls=urls)
+
+    # Получаем url фото из базы для пользователя через user_id
+    user_urls = vkinder.get_photo_urls(user_id=537894429)
+    # Вот так обращаемся к результату запроса
+    for url in user_urls:
+        print("vkinder.get_photo_urls:", url.user_id, url.url)
+
+    # Добавляем пользователя в таблицу Favourite по его user_id
+    vkinder.add_to_favourite(user_id=679335476)
+
+    # Проверяем есть ли пользователь в избранном по его user_id
+    result1 = vkinder.check_favourite(user_id=679335476)
+    result2 = vkinder.check_favourite(user_id=679335479)
+    print("vkinder.check_favourite:", result1)
+    print("vkinder.check_favourite:", result2)
+
+    # Получаем список пользователей из избранного
+    favorites = vkinder.get_favourite()
+    for favorite in favorites:
+        print("vkinder.get_favourite:", favorite.user_id)
+
+    # Добавляем пользователя в таблицу Blacklist по его user_id
+    vkinder.add_to_blacklist(user_id=431194792)
+
+    # Проверяем есть ли пользователь в черном списке по его user_id
+    result3 = vkinder.check_blacklist(user_id=431194792)
+    result4 = vkinder.check_blacklist(user_id=431194791)
+    print("vkinder.check_blacklist:", result3)
+    print("vkinder.check_blacklist:", result4)
