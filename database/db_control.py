@@ -19,7 +19,16 @@ class Vkinder:
     def session_close(self):
         self.session.close()
 
+    def clear_tables(self):
+        '''Очистка данных из таблиц.'''
+        self.session.query(BlackList).delete()
+        self.session.query(Favourite).delete()
+        self.session.query(Photo).delete()
+        self.session.query(User).delete() 
+        self.session.commit()
+
     def add_user_data(self, data: list):
+        '''Добавление информации о пользователе в базу данных.'''
         for record in data:
             self.session.add(
                 User(
@@ -31,9 +40,11 @@ class Vkinder:
         self.session.commit()
 
     def get_user(self, id: int):
+        '''Получение пользователя из базы данных.'''
         return self.session.query(User).filter(User.id == id).first()
 
     def add_photo_urls(self, user_id: int, urls: list):
+        '''Добавление фотографии в базу данных.'''
         for url in urls:
             self.session.add(
                 Photo(
@@ -44,9 +55,11 @@ class Vkinder:
         self.session.commit()
 
     def get_photo_urls(self, user_id: int):
+        '''Получение фотографии из базы данных.'''
         return self.session.query(Photo).filter(Photo.user_id == user_id).all()
 
     def add_to_favourite(self, user_id: int):
+        '''Добавление пользователя в таблицу Favourite.'''
         self.session.add(
             Favourite(
                 user_id=user_id,
@@ -55,6 +68,7 @@ class Vkinder:
         self.session.commit()
 
     def check_favourite(self, user_id: int):
+        '''Проверка на наличие пользователя в таблице Favourite.'''
         if (
             self.session.query(Favourite)
             .filter(Favourite.user_id == user_id)
@@ -66,9 +80,11 @@ class Vkinder:
             return True
 
     def get_favourite(self):
+        '''Получение всех пользователей, добавленных в Favourite.'''
         return self.session.query(Favourite).all()
 
     def add_to_blacklist(self, user_id: int):
+        '''Добавление пользователя в чёрный список.'''
         self.session.add(
             BlackList(
                 user_id=user_id,
@@ -77,6 +93,7 @@ class Vkinder:
         self.session.commit()
 
     def check_blacklist(self, user_id: int):
+        '''Проверка на наличие пользователя в чёрном списке.'''
         if (
             self.session.query(BlackList)
             .filter(BlackList.user_id == user_id)
@@ -89,14 +106,18 @@ class Vkinder:
 
 
 if __name__ == "__main__":
-    # Что бы все показать на примерах создал файл fixtures с тестовыми данными, подгружаю их оттуда
-    from database.fixtures import users
-    from database.fixtures import urls
+    '''Пример работы.'''
+    
+    # Чтобы всё показать на примерах, создал файл fixtures с тестовыми данными, подгружаю их оттуда
+    from fixtures import users, urls
 
     # Создаю класс для работы с БД
     vkinder = Vkinder()
 
-    # Записываем данные о пользователях полученных через vk_search в базу данных в таблицу User.
+    # Удаляем данные из таблиц
+    vkinder.clear_tables()
+
+    # Записываем данные о пользователях, полученных через vk_search, в базу данных в таблицу User
     # На вход подается список, см. fixtures.users
     vkinder.add_user_data(data=users)
 
@@ -105,7 +126,7 @@ if __name__ == "__main__":
     # Вот так обращаемся к результату запроса
     print("vkinder.get_user:", user1.id, user1.user_id, user1.first_name, user1.last_name)
 
-    # Записываем url фото для пользователя в базу данных в таблицу Photo. Url получаем через vk_search.
+    # Записываем url фото для пользователя в базу данных в таблицу Photo. Url получаем через vk_search
     # На вход подается список, см. fixtures.urls
     vkinder.add_photo_urls(user_id=537894429, urls=urls)
 
@@ -118,7 +139,7 @@ if __name__ == "__main__":
     # Добавляем пользователя в таблицу Favourite по его user_id
     vkinder.add_to_favourite(user_id=679335476)
 
-    # Проверяем есть ли пользователь в избранном по его user_id
+    # Проверяем, есть ли пользователь в избранном по его user_id
     result1 = vkinder.check_favourite(user_id=679335476)
     result2 = vkinder.check_favourite(user_id=679335479)
     print("vkinder.check_favourite:", result1)
@@ -132,7 +153,7 @@ if __name__ == "__main__":
     # Добавляем пользователя в таблицу Blacklist по его user_id
     vkinder.add_to_blacklist(user_id=431194792)
 
-    # Проверяем есть ли пользователь в черном списке по его user_id
+    # Проверяем, есть ли пользователь в чёрном списке по его user_id
     result3 = vkinder.check_blacklist(user_id=431194792)
     result4 = vkinder.check_blacklist(user_id=431194791)
     print("vkinder.check_blacklist:", result3)
