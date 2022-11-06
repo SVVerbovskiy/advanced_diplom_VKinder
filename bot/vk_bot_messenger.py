@@ -265,7 +265,7 @@ def main():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             msg = event.message.lower()
             client_id = event.user_id
-            if msg and flag == '':
+            if msg == 'привет' and flag == '':
                 get_start(client_id)
                 flag = 'start'
             if msg == 'завершить':
