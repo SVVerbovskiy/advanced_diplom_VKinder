@@ -1,6 +1,6 @@
 DRIVER = "postgresql"
 USERNAME = "postgres"
-PASSWORD = "postgres"
+PASSWORD = "7753191"
 HOST = "localhost"
 PORT = "5432"
 DATABASE = "vkinder"
