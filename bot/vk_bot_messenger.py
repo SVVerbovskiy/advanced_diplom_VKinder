@@ -16,7 +16,6 @@ upload = VkUpload(vk_auth)
 vk_client = VkClient(vk_token)
 vkinder = Vkinder()
 
-
 users_requests = {'hometown': '', 'sex': '', 'age': ''}
 
 
@@ -157,7 +156,7 @@ def change_data(user_id):
     send_msg(user_id, 'Что хотите изменить?', keyboard)
 
 
-def send_match(user_id):  # ??????
+def send_match(user_id):
     """
     Функция отправляет сообщение с количеством совпадений и кнопку для начала просмотра
 
@@ -183,7 +182,7 @@ def send_photo(user_id, url):
     vk.messages.send(user_id=user_id, attachment=url, random_id=randrange(10 ** 7))
 
 
-def send_next(user_id):  # ????
+def send_next(user_id):
     """
     Функция отправляет навигационные кнопки для просмотра информации о следующем пользователе,
     добавлении его в список избранного или в черный список
@@ -241,7 +240,6 @@ def add_to_blacklist(user_id):
     :param user_id: id собеседника
     :type user_id: int
     """
-    #     тут дописать механизм добавления в черный список
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('ИЗБРАННОЕ', VkKeyboardColor.PRIMARY)
     keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
