@@ -31,9 +31,28 @@ class VkClient:
         else:
             return None
 
-    def get_profile_photos(self, owner_id: str):
+    # def get_profile_photos(self, owner_id: str):
+    #     '''Получение фотографий профиля пользователя.'''
+    #     url = self.url + "photos.get"
+    #     params = {
+    #         "access_token": self.token,
+    #         "v": "5.131",
+    #         "owner_id": owner_id,
+    #         "album_id": "profile",
+    #         "extended": "1",
+    #         "photo_sizes": "1",
+    #     }
+    #
+    #     response = requests.get(url=url, params=params)
+    #     if response.ok:
+    #         if "error" not in response.json():
+    #             return response.json()["response"]["items"]
+    #     else:
+    #         return None
+
+    def get_all_photos(self, owner_id: str):
         '''Получение всех фотографий пользователя.'''
-        url = self.url + "photos.get"
+        url = self.url + "photos.getAll"
         params = {
             "access_token": self.token,
             "v": "5.131",
@@ -41,6 +60,7 @@ class VkClient:
             "album_id": "profile",
             "extended": "1",
             "photo_sizes": "1",
+            "no_service_albums": "0"
         }
 
         response = requests.get(url=url, params=params)
@@ -90,7 +110,7 @@ def get_potential_friends(client: VkClient, sex: str, hometown: str, age: str):
 
 def get_potential_friend_photos(client: VkClient, owner_id: str):
     '''Получение фотографий пользователя.'''
-    photos = client.get_profile_photos(owner_id=owner_id)
+    photos = client.get_all_photos(owner_id=owner_id)
     if photos is None or len(photos) < 3:
         return None
 
@@ -106,11 +126,9 @@ if __name__ == "__main__":
     vk_client = VkClient(vk_token)
 
     # Ищем потенциальных друзей по критериям
-    my_potential_friends = get_potential_friends(
-        client=vk_client, sex="2", hometown="Москва", age="20"
-    )
+    my_potential_friends = get_potential_friends(client=vk_client, sex="2", hometown="Москва", age="20")
     print(my_potential_friends)
 
     # Получаем три популярные фотографии по id пользователя
-    my_potential_friend_photos = get_potential_friend_photos(client=vk_client, owner_id="199424919")
+    my_potential_friend_photos = get_potential_friend_photos(client=vk_client, owner_id="481468488")
     print(my_potential_friend_photos)
