@@ -9,7 +9,7 @@ class VkClient:
         self.token = token
 
     def search_users(self, offset: str, count: str, hometown: str, sex: str, age: str):
-        '''Поиск пользователей по определённым критериям.'''
+        """Поиск пользователей по определённым критериям"""
         url = self.url + "users.search"
         params = {
             "access_token": self.token,
@@ -32,7 +32,7 @@ class VkClient:
             return None
 
     # def get_profile_photos(self, owner_id: str):
-    #     '''Получение фотографий профиля пользователя.'''
+    #     """Получение фотографий профиля пользователя"""
     #     url = self.url + "photos.get"
     #     params = {
     #         "access_token": self.token,
@@ -51,7 +51,7 @@ class VkClient:
     #         return None
 
     def get_all_photos(self, owner_id: str):
-        '''Получение всех фотографий пользователя.'''
+        """Получение всех фотографий пользователя"""
         url = self.url + "photos.getAll"
         params = {
             "access_token": self.token,
@@ -72,7 +72,7 @@ class VkClient:
 
 
 def get_three_popular_profile_photos(profile_photos: list):
-    '''Получение трёх самых популярных фотографий пользователя.'''
+    """Получение трёх самых популярных фотографий пользователя"""
     if len(profile_photos) >= 3:
         likes = []
         popular_profile_photos = []
@@ -95,7 +95,7 @@ def get_three_popular_profile_photos(profile_photos: list):
 
 
 def get_potential_friends(client: VkClient, sex: str, hometown: str, age: str):
-    '''Поиск пользователей по заданным параметрам.'''
+    """Поиск пользователей по заданным параметрам"""
     if int(sex) == 1:
         desired_sex = "2"
     else:
@@ -109,7 +109,7 @@ def get_potential_friends(client: VkClient, sex: str, hometown: str, age: str):
 
 
 def get_potential_friend_photos(client: VkClient, owner_id: str):
-    '''Получение фотографий пользователя.'''
+    """Получение фотографий пользователя"""
     photos = client.get_all_photos(owner_id=owner_id)
     if photos is None or len(photos) < 3:
         return None
@@ -119,16 +119,16 @@ def get_potential_friend_photos(client: VkClient, owner_id: str):
     return [_["sizes"][-1]["url"] for _ in popular_photos]
 
 
-if __name__ == "__main__":
-    '''Пример работы.'''
-
-    # Создаём экземпляр класса vk клиента
-    vk_client = VkClient(vk_token)
-
-    # Ищем потенциальных друзей по критериям
-    my_potential_friends = get_potential_friends(client=vk_client, sex="2", hometown="Москва", age="20")
-    print(my_potential_friends)
-
-    # Получаем три популярные фотографии по id пользователя
-    my_potential_friend_photos = get_potential_friend_photos(client=vk_client, owner_id="481468488")
-    print(my_potential_friend_photos)
+#if __name__ == "__main__":
+#    """Пример работы"""
+#
+#    # Создаём экземпляр класса vk клиента
+#    vk_client = VkClient(vk_token)
+#
+#    # Ищем потенциальных друзей по критериям
+#    my_potential_friends = get_potential_friends(client=vk_client, sex="2", hometown="Москва", age="20")
+#    print(my_potential_friends)
+#
+#    # Получаем три популярные фотографии по id пользователя
+#    my_potential_friend_photos = get_potential_friend_photos(client=vk_client, owner_id="481468488")
+#    print(my_potential_friend_photos)

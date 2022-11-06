@@ -21,7 +21,7 @@ users_requests = {'hometown': '', 'sex': '', 'age': ''}
 
 def send_msg(user_id, message, keyboard=None):
     """
-    Функция отправляет сообщение собеседнику
+    Отправка сообщения собеседнику
 
     :param user_id: id собеседника
     :type user_id: int
@@ -44,7 +44,7 @@ def send_msg(user_id, message, keyboard=None):
 
 def get_start(user_id):
     """
-    Функция отправляет кнопку предлагающую начать подбор
+    Отправка кнопки, предлагающей начать подбор
 
     :param user_id: id собеседника
     :type user_id: int
@@ -56,7 +56,7 @@ def get_start(user_id):
 
 def get_finish(user_id):
     """
-    Функция отправляет сообщение при завершении сеанса общения
+    Отправка сообщения при завершении сеанса общения
 
     :param user_id: id собеседника
     :type user_id: int
@@ -67,7 +67,7 @@ def get_finish(user_id):
 
 def get_hometown(user_id):
     """
-    Функция отправляет сообщение с просьбой ввести город в котором будем искать
+    Отправка сообщения с просьбой ввести город, по которому будет осуществляться поиск
 
     :param user_id: id собеседника
     :type user_id: int
@@ -79,11 +79,11 @@ def get_hometown(user_id):
 
 def confirm_hometown(user_id, hometown):
     """
-    Функция отправляет кнопки для изменения и подтверждения города
+    Отправка кнопок для изменения и подтверждения города
 
     :param user_id: id собеседника
     :type user_id: int
-    :param hometown: название города которое ввёл собеседник
+    :param hometown: название города, которое ввёл собеседник
     :type hometown: str
     """
     keyboard = VkKeyboard(one_time=True)
@@ -96,7 +96,7 @@ def confirm_hometown(user_id, hometown):
 
 def get_sex(user_id):
     """
-    Функция отправляет кнопки для выбора пола партнёра
+    Отправка кнопки для выбора пола партнёра
 
     :param user_id: id собеседника
     :type user_id: int
@@ -111,7 +111,7 @@ def get_sex(user_id):
 
 def get_age(user_id):
     """
-    Функция отправляет сообщение с запросом возраста для поиска партнера
+    Отправка сообщения с запросом возраста для поиска партнёра
 
     :param user_id: id собеседника
     :type user_id: int
@@ -121,7 +121,7 @@ def get_age(user_id):
 
 def confirm_data(user_id, sex, hometown, age):
     """
-    Функция отправляет кнопки для изменения и подтверждения параметров поиска
+    Отправка кнопок для изменения и подтверждения параметров поиска
 
     :param user_id: id собеседника
     :type user_id: int
@@ -142,7 +142,7 @@ def confirm_data(user_id, sex, hometown, age):
 
 def change_data(user_id):
     """
-    Функция отправляет кнопки для выбора параметра который необходимо изменить
+    Отправка кнопок для выбора параметра, который необходимо изменить
 
     :param user_id: id собеседника
     :type user_id: int
@@ -158,7 +158,7 @@ def change_data(user_id):
 
 def send_match(user_id):
     """
-    Функция отправляет сообщение с количеством совпадений и кнопку для начала просмотра
+    Отправка сообщения с количеством совпадений и кнопки для начала просмотра
 
     :param user_id: id собеседника
     :type user_id: int
@@ -172,7 +172,7 @@ def send_match(user_id):
 
 def send_photo(user_id, url):
     """
-    Функция отправляет фотографию
+    Отправка фотографии
 
     :param user_id: id собеседника
     :type user_id: int
@@ -184,8 +184,8 @@ def send_photo(user_id, url):
 
 def send_next(user_id):
     """
-    Функция отправляет навигационные кнопки для просмотра информации о следующем пользователе,
-    добавлении его в список избранного или в черный список
+    Отправка навигационных кнопок для просмотра информации о следующем пользователе,
+    добавлении его в список избранного или в чёрный список
 
     :param user_id: id собеседника
     :type user_id: int
@@ -203,7 +203,7 @@ def send_next(user_id):
 
 def add_to_favorite(user_id):
     """
-    Функция добавляет партнера в избранное и записывает в БД
+    Добавление партнёра в избранное и создание соответствующей записи в базе данных
 
     :param user_id: id собеседника
     :type user_id: int
@@ -219,7 +219,7 @@ def add_to_favorite(user_id):
 
 def show_favorite(user_id):
     """
-    Функция отправляет сообщения с данными о списке избранных получив данные из БД
+    Отправка сообщения со списком избранных из базы данных
 
     :param user_id: id собеседника
     :type user_id: int
@@ -235,7 +235,7 @@ def show_favorite(user_id):
 
 def add_to_blacklist(user_id):
     """
-    Функция добавляет пользователя в черный список и делает запись в БД
+    Добавление пользователя в чёрный список и создание соответствующей записи в базе данных
 
     :param user_id: id собеседника
     :type user_id: int
@@ -250,7 +250,7 @@ def add_to_blacklist(user_id):
 
 def friends_list():
     """
-    Функция формирует список возможных друзей используя данные полученные после общения с пользователем
+    Формирование списка возможных друзей, используя данные, полученные после общения с пользователем
     """
     friends = get_potential_friends(client=vk_client,
                                     sex=users_requests['sex'],
