@@ -1,7 +1,7 @@
 import sqlalchemy as sq
 from sqlalchemy.orm import sessionmaker
-from database.models import create_tables, drop_tables, User, Photo, Favourite, BlackList
-from database.db_config import DSN
+from models import create_tables, drop_tables, User, Photo, Favourite, BlackList
+from db_config import DSN
 
 
 def create_connection():
@@ -105,16 +105,16 @@ class Vkinder:
             return True
 
 
-# if __name__ == "__main__":
-#     """Пример работы."""
+#if __name__ == "__main__":
+#    """Пример работы."""
 #
-#     # Чтобы всё показать на примерах, создаём файл fixtures с тестовыми данными, подгружаем их оттуда
-#     from fixtures import users, urls
-#
-#     # Создаём класс для работы с БД
-#     vkinder = Vkinder()
-#     vkinder.drop_old_tables()
+    # # Чтобы всё показать на примерах, создаём файл fixtures с тестовыми данными, подгружаем их оттуда
+    # from fixtures import users, urls
 
+    # # Создаём класс для работы с БД
+    # vkinder = Vkinder()
+    # vkinder.drop_old_tables()
+    # vkinder.create_new_tables()
     #
     # # Записываем данные о пользователях, полученных через vk_search, в базу данных в таблицу User
     # # На вход подаётся список, см. fixtures.users
@@ -137,6 +137,7 @@ class Vkinder:
     #     print("vkinder.get_photo_urls:", url.user_id, url.url)
     #
     # # Добавляем пользователя в таблицу Favourite по его user_id
+    #
     # vkinder.add_to_favourite(user_id=679335476)
     #
     # # Проверяем, есть ли пользователь в избранном по его user_id
