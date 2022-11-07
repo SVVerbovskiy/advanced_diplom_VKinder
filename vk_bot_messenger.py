@@ -15,6 +15,8 @@ longpoll = VkLongPoll(vk_auth)
 upload = VkUpload(vk_auth)
 vk_client = VkClient(vk_token)
 vkinder = Vkinder()
+vkinder.drop_old_tables()
+vkinder.create_new_tables()
 
 users_requests = {'hometown': '', 'sex': '', 'age': ''}
 
@@ -201,38 +203,6 @@ def send_next(user_id):
     send_msg(user_id, f'Что думаете о данном пользователе?', keyboard)
 
 
-def add_to_favorite(user_id):
-    """
-    Добавление партнёра в избранное и создание соответствующей записи в базе данных
-
-    :param user_id: id собеседника
-    :type user_id: int
-    """
-
-    keyboard = VkKeyboard(one_time=True)
-    keyboard.add_button('ИЗБРАННОЕ', VkKeyboardColor.PRIMARY)
-    keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
-    keyboard.add_line()
-    keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
-    send_msg(user_id, f'"ИМЯ" в избранном!', keyboard)
-
-
-def show_favorite(user_id):
-    """
-    Отправка сообщения со списком избранных из базы данных
-
-    :param user_id: id собеседника
-    :type user_id: int
-    """
-    vkinder.get_favourite()
-    send_msg(user_id, f'У Вас в избранном {len(vkinder.get_favourite())} человек:')
-    keyboard = VkKeyboard(one_time=True)
-    keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
-    keyboard.add_line()
-    keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
-    send_msg(user_id, 'Смотрим дальше?', keyboard)
-
-
 def add_to_blacklist(user_id):
     """
     Добавление пользователя в чёрный список и создание соответствующей записи в базе данных
@@ -269,13 +239,12 @@ def main():
                 get_start(client_id)
                 flag = 'start'
             if msg == 'завершить':
-
                 get_finish(client_id)
                 flag = ''
             elif msg == 'начнём подбор!':
-                get_hometown(client_id)
                 vkinder.drop_old_tables()
                 vkinder.create_new_tables()
+                get_hometown(client_id)
                 flag = 'to_hometown'
             elif flag == 'to_hometown':
                 confirm_hometown(client_id, msg)
@@ -353,7 +322,6 @@ def main():
                 photo_list = get_potential_friend_photos(vk_client, owner_id=user.user_id)
                 if photo_list is not None:
                     vkinder.add_photo_urls(user.user_id, photo_list)
-                    send_next(client_id)
                     send_msg(client_id, full_name)
                     send_msg(client_id, page_link)
                     user_photos = vkinder.get_photo_urls(user.user_id)
@@ -363,17 +331,33 @@ def main():
                         upload_photo = upload.photo_messages(f)[0]
                         url = ('photo{}_{}'.format(upload_photo['owner_id'], upload_photo['id']))
                         send_photo(client_id, url=url)
-                else:
                     send_next(client_id)
+                else:
                     send_msg(client_id, full_name)
                     send_msg(client_id, page_link)
                     send_msg(client_id, 'У пользователя недостаточно фото, можете перейти по ссылке на его страницу!')
+                    send_next(client_id)
             elif msg == 'в избранное':
                 vkinder.add_to_favourite(user.user_id)
-                add_to_favorite(user_id=client_id)
+                keyboard = VkKeyboard(one_time=True)
+                keyboard.add_button('ИЗБРАННОЕ', VkKeyboardColor.PRIMARY)
+                keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
+                keyboard.add_line()
+                keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
+                send_msg(client_id, f'Пользователь {full_name} {page_link} добавлен в избранное!', keyboard)
             elif msg == 'избранное':
-                vkinder.get_favourite()
-                show_favorite(client_id)
+                favorites = vkinder.get_favourite()
+                send_msg(client_id, f'У Вас в избранном {len(favorites)} человек:')
+                for favorite in favorites:
+                    user = vkinder.user_serch(user_id=favorite.user_id)
+                    full_name = f"{user.first_name} {user.last_name}"
+                    page_link = f"https://vk.com/id{user.user_id}"
+                    send_msg(client_id, f'{full_name} {page_link}')
+                keyboard = VkKeyboard(one_time=True)
+                keyboard.add_button('Дальше', VkKeyboardColor.SECONDARY)
+                keyboard.add_line()
+                keyboard.add_button('Завершить', VkKeyboardColor.NEGATIVE)
+                send_msg(client_id, 'Смотрим дальше?', keyboard)
             elif msg == 'в чёрный список':
                 vkinder.add_to_blacklist(user.user_id)
                 add_to_blacklist(client_id)
