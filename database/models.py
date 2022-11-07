@@ -28,18 +28,14 @@ class Favourite(Base):
     __tablename__ = "favourite"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"), unique=True, nullable=False)
-
-    user = relationship(User, backref="favourite")
+    user_id = Column(Integer, unique=True, nullable=False)
 
 
 class BlackList(Base):
     __tablename__ = "blacklist"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"), unique=True, nullable=False)
-
-    user = relationship(User, backref="blacklist")
+    user_id = Column(Integer, unique=True, nullable=False)
 
 
 def create_tables(engine):
@@ -48,4 +44,4 @@ def create_tables(engine):
 
 def drop_tables(engine):
     '''Удаление таблиц в базе данных.'''
-    Base.metadata.drop_all(engine)
+    Base.metadata.drop_all(bind=engine, tables=[User.__table__, Photo.__table__])
