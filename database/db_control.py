@@ -1,7 +1,7 @@
 import sqlalchemy as sq
 from sqlalchemy.orm import sessionmaker
-from models import create_tables, drop_tables, User, Photo, Favourite, BlackList
-from db_config import DSN
+from database.models import create_tables, drop_tables, User, Photo, Favourite, BlackList
+from database.db_config import DSN
 
 
 def create_connection():
