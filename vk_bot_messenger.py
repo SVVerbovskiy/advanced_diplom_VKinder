@@ -15,8 +15,6 @@ longpoll = VkLongPoll(vk_auth)
 upload = VkUpload(vk_auth)
 vk_client = VkClient(vk_token)
 vkinder = Vkinder()
-vkinder.drop_old_tables()
-vkinder.create_new_tables()
 
 users_requests = {"hometown": "", "sex": "", "age": ""}
 
@@ -49,7 +47,7 @@ def get_start(user_id):
     """
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button("Начнём подбор!", VkKeyboardColor.PRIMARY)
-    send_msg(user_id, f"Привет", keyboard)
+    send_msg(user_id, "Привет", keyboard)
 
 
 def get_finish(user_id):
@@ -60,7 +58,7 @@ def get_finish(user_id):
     :type user_id: int
     """
 
-    send_msg(user_id, f"Всего доброго! До скорых встреч!")
+    send_msg(user_id, "Всего доброго! До скорых встреч!")
 
 
 def get_hometown(user_id):
@@ -104,7 +102,7 @@ def get_sex(user_id):
     keyboard.add_button("Девушку", color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()
     keyboard.add_button("Завершить", color=VkKeyboardColor.NEGATIVE)
-    send_msg(user_id, f"Кого будем искать?", keyboard)
+    send_msg(user_id, "Кого будем искать?", keyboard)
 
 
 def get_age(user_id):
@@ -114,7 +112,7 @@ def get_age(user_id):
     :param user_id: id собеседника
     :type user_id: int
     """
-    send_msg(user_id, f"Укажите возраст:")
+    send_msg(user_id, "Укажите возраст:")
 
 
 def confirm_data(user_id, sex, hometown, age):
@@ -204,7 +202,22 @@ def send_next(user_id):
     keyboard.add_button("В избранное", VkKeyboardColor.POSITIVE)
     keyboard.add_line()
     keyboard.add_button("Завершить", VkKeyboardColor.NEGATIVE)
-    send_msg(user_id, f"Что думаете о данном пользователе?", keyboard)
+    send_msg(user_id, "Что думаете о данном пользователе?", keyboard)
+
+
+def send_next_v2(user_id):
+    """
+    Отправка информации о пользователе, добавленном в чёрный список или избранное, и навигационных кнопок
+    для продолжения поиска
+
+    :param user_id: id собеседника
+    :type user_id: int
+    """
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button("Дальше", VkKeyboardColor.POSITIVE)
+    keyboard.add_button("ИЗБРАННОЕ", VkKeyboardColor.PRIMARY)
+    keyboard.add_button("Завершить", VkKeyboardColor.NEGATIVE)
+    send_msg(user_id, "Смотрим дальше?", keyboard)
 
 
 def add_to_blacklist(user_id):
@@ -219,7 +232,7 @@ def add_to_blacklist(user_id):
     keyboard.add_button("Дальше", VkKeyboardColor.SECONDARY)
     keyboard.add_line()
     keyboard.add_button("Завершить", VkKeyboardColor.NEGATIVE)
-    send_msg(user_id, f"Пользователь добавлен в чёрный список", keyboard)
+    send_msg(user_id, "Пользователь добавлен в чёрный список", keyboard)
 
 
 def friends_list():
@@ -344,28 +357,48 @@ def main():
                 photo_list = get_potential_friend_photos(
                     vk_client, owner_id=user.user_id
                 )
-                if photo_list is not None:
-                    vkinder.add_photo_urls(user.user_id, photo_list)
-                    send_msg(client_id, full_name)
-                    send_msg(client_id, page_link)
-                    user_photos = vkinder.get_photo_urls(user.user_id)
-                    for photo in user_photos:
-                        img = requests.get(photo.url).content
-                        f = BytesIO(img)
-                        upload_photo = upload.photo_messages(f)[0]
-                        url = "photo{}_{}".format(
-                            upload_photo["owner_id"], upload_photo["id"]
-                        )
-                        send_photo(client_id, url=url)
-                    send_next(client_id)
-                else:
+                blocked = vkinder.check_blacklist(user.user_id)
+                favourited = vkinder.check_favourite(user.user_id)
+                if blocked: 
                     send_msg(client_id, full_name)
                     send_msg(client_id, page_link)
                     send_msg(
                         client_id,
-                        "У пользователя недостаточно фото, можете перейти по ссылке на его страницу!",
+                        "Пользователь добавлен в чёрный список, поэтому Вам не будут показаны его фото.",
                     )
-                    send_next(client_id)
+                    send_next_v2(client_id)
+                else:
+                    if favourited:
+                        send_msg(client_id, full_name)
+                        send_msg(client_id, page_link)
+                        send_msg(
+                        client_id,
+                            "Пользователь уже добавлен в избранное.",
+                        )
+                        send_next_v2(client_id)
+                    else: 
+                        if photo_list is not None:
+                            vkinder.add_photo_urls(user.user_id, photo_list)
+                            send_msg(client_id, full_name)
+                            send_msg(client_id, page_link)
+                            user_photos = vkinder.get_photo_urls(user.user_id)
+                            for photo in user_photos:
+                                img = requests.get(photo.url).content
+                                f = BytesIO(img)
+                                upload_photo = upload.photo_messages(f)[0]
+                                url = "photo{}_{}".format(
+                                    upload_photo["owner_id"], upload_photo["id"]
+                                )
+                                send_photo(client_id, url=url)
+                            send_next(client_id)
+                        else:
+                            send_msg(client_id, full_name)
+                            send_msg(client_id, page_link)
+                            send_msg(
+                                client_id,
+                                "У пользователя недостаточно фото, можете перейти по ссылке на его страницу!",
+                            )
+                            send_next(client_id)
             elif msg == "в избранное":
                 vkinder.add_to_favourite(user.user_id)
                 keyboard = VkKeyboard(one_time=True)
